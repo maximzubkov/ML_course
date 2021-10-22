@@ -28,7 +28,9 @@ def least_squares(y, tx):
     """calculate the least squares solution."""
     a = tx.T.dot(tx)
     b = tx.T.dot(y)
-    return np.linalg.solve(a, b)
+    w = np.linalg.solve(a, b)
+    loss = compute_loss(y,tx,w)
+    return w, loss
     
 def compute_gradient(y, tx, w):
     """Compute the gradient."""
