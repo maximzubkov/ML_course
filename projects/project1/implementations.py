@@ -28,7 +28,9 @@ def least_squares(y, tx):
     """calculate the least squares solution."""
     a = tx.T.dot(tx)
     b = tx.T.dot(y)
-    return np.linalg.solve(a, b)
+    w = np.linalg.solve(a, b)
+    loss = compute_loss(y,tx,w)
+    return w, loss
     
 def compute_gradient(y, tx, w):
     """Compute the gradient."""
@@ -54,9 +56,10 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         print("Gradient Descent({bi}/{ti}): loss={l}, w0={w0}, w1={w1}".format(
               bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
 
-    w = ws[:,-1] # last weight vector of weight matrix
+    w = ws[-1] # last weight vector of weight matrix
+    loss = losses[-1] # corresponding loss
 
-    return losses, w
+    return w, loss
     
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
@@ -87,9 +90,10 @@ def least_squares_SGD(
         print("SGD({bi}/{ti}): loss={l}, w0={w0}, w1={w1}".format(
               bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
     
-    w = ws[:,-1]
-    
-    return losses, w
+    w = ws[-1] # last weight vector of weight matrix
+    loss = losses[-1] # corresponding loss
+
+    return w, loss
     
 """ Ridge regression """
 # Corrects the overfitting that could happen with previous functions
@@ -99,8 +103,14 @@ def ridge_regression(y, tx, lambda_):
     aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
     a = tx.T.dot(tx) + aI
     b = tx.T.dot(y)
-    return np.linalg.solve(a, b)
     
+    # Solve the linear matrix equation to find the optimal weight vector
+    w_opt = np.linalg.solve(a, b)
+    
+    # Compute the loss with the weight vector found
+    loss = compute_mse(y,tx,w_opt)
+
+    return w, loss    
 
 
     
