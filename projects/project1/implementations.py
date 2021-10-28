@@ -190,70 +190,43 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
 
 def sigmoid(t):
     """apply the sigmoid function on t."""
-    sigm = 1/(1 + np.exp(-t))
-    return sigm
+    return 1/(1 + np.exp(-t))
 
 def calculate_loss(y, tx, w):
     """compute the loss: negative log likelihood."""
-    tmp = sigmoid(tx.dot(w)) #has the same shape as y
-    loss = (-y.T).dot(np.log(tmp)) + ((1-y).T).dot(np.log(1-tmp))
+    N = tx.shape[0]
+    pred = sigmoid(tx @ w) #has the same shape as y
+    loss = - 1 / N * (y.T @ np.log(pred) + (1-y).T @ np.log(1 - pred))
     return loss
 
 def calculate_gradient(y, tx, w):
     """compute the gradient of loss."""
-    pred = sigmoid(tx.dot(w))
-    grad = tx.T.dot(pred - y)
+    N = tx.shape[0]
+    pred = sigmoid(tx @ w)
+    grad = tx.T @ (pred - y) / N
     return grad
 
-def calculate_hessian(y, tx, w):
-    """return the Hessian of the loss function."""
-    # calculate Hessian using formula derived in class
-    sigm = sigmoid(tx.dot(w))
-    tmp = np.diag(sigm.T[0])
-    S = np.multiply(tmp,(1-tmp)) # function multiply multiplies vectors element wise (produit scalaire)
-    hess = tx.T.dot(S).dot(tx)
-    return hess
+tol = 1e-5
 
-def logistic_regression(y, tx, w):
-    """return the loss, gradient, and Hessian."""
-    # return loss, gradient, and Hessian: 
-    loss = calculate_loss(y, tx, w)
-    grad = calculate_gradient(y, tx, w)
-    hess = calculate_hessian(y, tx, w)
-    return loss, grad, hess
-
-def learning_by_newton_method(y, tx, w, gamma):
+def logistic_regression(y, tx, w, max_iters, gamma):
     """
-    Do one step on Newton's method.
-    return the loss and updated w.
+    Logistic regression using gradient descent
     """
-    # return loss, gradient and Hessian: 
-    loss, grad, hess = logistic_regression(y, tx, w)
-    
-    # update w:
-    w -= gamma*np.linalg.inv(hess).dot(grad) #cf slides its explained
-
-    return loss, w
-
+    return reg_logistic_regression(y, tx, 0, w, max_iters, gamma)
 
 """Regularized Logistic Regression"""
 
-def penalized_logistic_regression(y, tx, w, lambda_):
-    """return the loss, gradient"""
-    # return loss, gradient 
-    loss = calculate_loss(y, tx, w) + lambda_* w.T.dot(w) # squeeze removes axes of length one from vector
-    gradient = calculate_gradient(y, tx, w) + 2 * lambda_ * w 
-    
-    return loss, grad
-
-def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
+def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
     """
-    Do one step of gradient descent, using the penalized logistic regression.
-    Return the loss and updated w.
+    Regularized logistic regression using gradient descent
     """
-    # return loss, gradient:
-    loss, gradient = penalized_logistic_regression(y, tx, w, lambda_)
-    # update w: 
-    w -= gamma * gradient
+    losses = []
+    for i in range(max_iters):
+        loss = calculate_loss(y, tx, w) + np.linalg.norm(w) ** 2 * lambda_ / 2 # squeeze removes axes of length one from vector
+        grad = calculate_gradient(y, tx, w) + lambda_ * w
+        w = w - gamma * grad
+        losses.append(loss)
+        if (len(losses) > 2) and np.abs(losses[-2] - losses[-1]) < tol:
+            break
 
-    return loss, w
+    return losses[-1], w
