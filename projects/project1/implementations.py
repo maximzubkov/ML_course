@@ -4,7 +4,7 @@ import numpy as np
 
 def calculate_mse(e):
     """Calculate the mse for vector e."""
-    return 1/2*np.mean(e**2)
+    return 1/2 * np.mean(e ** 2)
 
 
 def calculate_mae(e):
@@ -30,7 +30,7 @@ def least_squares(y, tx):
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
     loss = compute_loss(y,tx,w)
-    return w, loss
+    return loss, w
     
 def compute_gradient(y, tx, w):
     """Compute the gradient."""
@@ -59,7 +59,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = ws[-1] # last weight vector of weight matrix
     loss = losses[-1] # corresponding loss
 
-    return w, loss
+    return loss, w
     
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
@@ -93,7 +93,7 @@ def least_squares_SGD(
     w = ws[-1]
     loss = losses[-1] # corresponding lost
     
-    return w, loss
+    return loss, w
     
 """ Ridge regression """
 # Corrects the overfitting that could happen with previous functions
@@ -110,7 +110,7 @@ def ridge_regression(y, tx, lambda_):
     # Compute the loss with the weight vector found
     loss = compute_loss(y,tx,w_opt)
 
-    return w, loss
+    return loss, w_opt
     
 
 """Polynomial regression"""
@@ -170,9 +170,9 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     # get k'th subgroup in test, others in train:
     test_index = k_indices[k]
     x_te = x[test_index]
-    x_tr = np.delete(x, test_index)
+    x_tr = np.delete(x, test_index, axis=0)
     y_te = y[test_index]
-    y_tr = np.delete(y,test_index)
+    y_tr = np.delete(y,test_index, axis=0)
 
     # form data with polynomial degree: TODO
     tx_tr = build_poly(x_tr, degree)
